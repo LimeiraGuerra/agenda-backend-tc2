@@ -18,17 +18,17 @@ function generateToken(params = {}) {
 // Cadastra uma nova conta e já retorna o token
 exports.signUp = (req, res) => {
   if (!(isNotEmpty(req.body.name) && isNotEmpty(req.body.email) && isNotEmpty(req.body.password))) {
-    res.status(400).send({ msg: "Missing data" });
+    res.status(400).send({id: 'missing-data', msg: "Insufficient data" });
     return;
   }
   if (!emailChecker.validate(req.body.email)) {
-    res.status(400).send({ msg: "Email is invalid" });
+    res.status(400).send({id: 'invalid-email', msg: "Email is invalid" });
     return;
   }
 
   User.findOne({ email: req.body.email }).then(data => {
     if (data) {
-      res.status(400).send({ msg: "Email already in use" });
+      res.status(400).send({id: 'email-already-in-use', msg: "Email already in use" });
       return;
     }
 
@@ -43,26 +43,31 @@ exports.signUp = (req, res) => {
       res.send({ data, token: generateToken({ id: data.id }) })
     });
   }).catch(err => {
-    res.status(500).send({ msg: err.message });
+    res.status(500).send({id: 'internal-error', msg: err.message });
   });
 }
 
 // Realiza o login (retorna o token)
 exports.login = (req, res) => {
   if (!(isNotEmpty(req.body.email) && isNotEmpty(req.body.password))) {
-    res.status(400).send({ msg: "Missing data" });
+    res.status(400).send({id: 'missing-data', msg: "Insufficient data" });
+    return;
+  }
+
+  if (!emailChecker.validate(req.body.email)) {
+    res.status(400).send({id: 'invalid-email', msg: "Email is invalid" });
     return;
   }
 
   User.findOne({ email: req.body.email }).then(data => {
     if (!data) {
-      res.status(400).send({ msg: "User not found" });
+      res.status(400).send({id: 'user-not-found', msg: "User is not found" });
       return;
     }
 
     bcrypt.compare(req.body.password, data.password).then(match => {
       if (!match) {
-        res.status(400).send({ msg: "Invalid email or password" });
+        res.status(400).send({id: 'invalid-password', msg: "Password is invalid" });
         return;
       }
 
@@ -70,6 +75,6 @@ exports.login = (req, res) => {
       res.send({ data, token: generateToken({ id: data.id }) })
     });
   }).catch(err => {
-    res.status(500).send({ msg: err.message });
+    res.status(500).send({id: 'internal-error', msg: err.message });
   });
 }
