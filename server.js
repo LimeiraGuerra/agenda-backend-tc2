@@ -21,7 +21,7 @@ app.get("/", (req, res) => {
 
 const db = require("./app/models");
 db.mongoose
-  .connect(db.url, {
+  .connect(db.url, { 
     useNewUrlParser: true,
     useUnifiedTopology: true
   })
@@ -34,8 +34,8 @@ db.mongoose
   });
 
 require("./app/routes/user.routes")(app);
-
-const PORT = process.env.PORT || 8080;
+require("./app/routes/event.routes")(app);//app.use("/events", require("./app/routes/events.routes.js"));
+const PORT = process.env.PORT || 3030; //mudar para 8080
 app.listen(PORT, () => {
   console.log(`Servidor está executando na porta ${PORT}.`);
 });
