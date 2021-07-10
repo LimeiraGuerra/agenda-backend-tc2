@@ -34,7 +34,7 @@ db.mongoose
   });
 
 require("./app/routes/user.routes")(app);
-require("./app/routes/event.routes")(app);//app.use("/events", require("./app/routes/events.routes.js"));
+require("./app/routes/event.routes")(app);
 const PORT = process.env.PORT || 3030; //mudar para 8080
 app.listen(PORT, () => {
   console.log(`Servidor está executando na porta ${PORT}.`);
