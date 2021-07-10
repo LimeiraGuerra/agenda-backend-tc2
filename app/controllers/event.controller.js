@@ -63,7 +63,7 @@ exports.listOne = (req, res) => {
             res.status(400).send({id: 'invalid-id', msg: err });
             return;
         }
-        console.log(event)
+
         return res.json({event})
     });
 }
