@@ -9,7 +9,7 @@ module.exports = app => {
 
     router.get("/listOne/:eventId", eventController.listOne);
 
-    router.post("/update", eventController.updateEvent);
+    router.post("/update/:eventId", eventController.updateEvent);
 
     router.delete("/delete/:eventId", eventController.deleteEvent);
 

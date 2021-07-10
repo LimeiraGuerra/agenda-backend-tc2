@@ -56,11 +56,54 @@ exports.listAll = (req, res) => {
 }
 
 exports.listOne = (req, res) => {
+    const _id = req.params.eventId;
+
+    Event.findOne({_id}, (err, event) => {
+        if (err){
+            res.status(400).send({id: 'invalid-id', msg: err });
+            return;
+        }
+        console.log(event)
+        return res.json({event})
+    });
 }
 
 exports.updateEvent = (req, res) => {
+    const _id = req.params.eventId;
+
+    const event = {
+        name: req.body.name,
+        description: req.body.description,
+        startDate: req.body.startDate,
+        endDate: req.body.endDate,
+        creator: req.body.creator,
+    }
+
+    Event.findOneAndUpdate({_id}, event, (err, event) => {
+        if (err){
+            res.status(400).send({id: 'invalid-id', msg: err });
+            return;
+        }
+
+        Event.findOne(event._id, (err, event) => {
+            if (err){
+                res.status(400).send({id: 'invalid-id', msg: err });
+                return;
+            }
+            return res.json({event});
+        });
+    });
+
 }
 
 exports.deleteEvent = (req, res) => {
+    const _id = req.params.eventId;
 
+    Event.deleteOne({_id}, (err, event) =>  {
+        if (err) {
+            res.status(400).send({id: 'invalid-id', msg: err });
+        }
+
+        return res.json({event});
+      });
 }
