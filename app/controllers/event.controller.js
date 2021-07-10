@@ -20,6 +20,10 @@ exports.createEvent = (req, res) => {
         return;
     };
 
+    if (!(endDate > startDate) || !(startDate > Date.now()) || !(endDate > Date.now())) {
+        res.status(400).send({id: 'invalid-date', msg: "Date is invalid" });
+        return;
+    }
     const event = {
         name: name,
         description: description,
