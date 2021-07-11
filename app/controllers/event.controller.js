@@ -7,7 +7,7 @@ const authConfig = require('../config/auth.config.js');
 exports.createEvent = (req, res) => {
     const {name} = req.body;
     const {description} = req.body;
-    const _id = "60e8b3967cebaa610caed594"; // TODO pegar id pelo token
+    const _id = req.userId;
     let startDate;
     let endDate;
 
@@ -30,7 +30,7 @@ exports.createEvent = (req, res) => {
         startDate: startDate,
         endDate: endDate,
         creator: _id,
-      };
+    };
 
     Event.create(event, (err, event) => {
         if (err) {
@@ -41,7 +41,7 @@ exports.createEvent = (req, res) => {
 }
 
 exports.listAll = (req, res) => {
-    Event.find({ creator: "60e8b3967cebaa610caed594"}).lean().exec((err, events) =>{
+    Event.find({ creator: req.userId}).lean().exec((err, events) =>{
         if (err) {
             res.status(500).send({id: 'internal-error', msg: err.message})
         }
@@ -56,32 +56,34 @@ exports.listAll = (req, res) => {
 }
 
 exports.listOne = (req, res) => {
-    const _id = req.params.eventId;
-
-    Event.findOne({_id}, (err, event) => {
+    Event.findOne({_id: req.params.eventId, creator: req.userId}, (err, event) => {
         if (err){
             res.status(400).send({id: 'invalid-id', msg: err });
             return;
         }
-
-        return res.json({event})
+        if (!event) {
+            res.status(400).send({id: 'invalid-id', msg: "No event with id "+req.params.eventId});
+            return;
+        }
+        return res.json({event});
     });
 }
 
 exports.updateEvent = (req, res) => {
-    const _id = req.params.eventId;
-
     const event = {
         name: req.body.name,
         description: req.body.description,
         startDate: req.body.startDate,
         endDate: req.body.endDate,
-        creator: req.body.creator,
     }
 
-    Event.findOneAndUpdate({_id}, event, (err, event) => {
+    Event.findOneAndUpdate({_id: req.params.eventId, creator: req.userId}, event, (err, event) => {
         if (err){
             res.status(400).send({id: 'invalid-id', msg: err });
+            return;
+        }
+        if (!event) {
+            res.status(400).send({id: 'invalid-id', msg: "No event with id "+req.params.eventId});
             return;
         }
 
@@ -97,13 +99,20 @@ exports.updateEvent = (req, res) => {
 }
 
 exports.deleteEvent = (req, res) => {
-    const _id = req.params.eventId;
-
-    Event.deleteOne({_id}, (err, event) =>  {
+    Event.deleteOne({_id: req.params.eventId, creator: req.userId}, (err, event) =>  {
         if (err) {
             res.status(400).send({id: 'invalid-id', msg: err });
         }
+        if (event.n == 0 ){
+            res.status(400).send({id: 'no-case', msg: "no matched cases"});
+            return;
+        }
 
-        return res.json({event});
+        if (event.deletedCount == 0){
+            res.status(400).send({id: 'no-deleted', msg: "no document deleted"});
+            return;
+        }
+
+        return res.json({id: 'deleted', msg:"successful deleted"});
       });
 }

@@ -1,6 +1,6 @@
 module.exports = app => {
     const eventController = require("../controllers/event.controller.js");
-
+    const authMiddleware = require('../middlewares/Auth.js')
     const router = require("express").Router();
 
     router.post("/create", eventController.createEvent);
@@ -13,5 +13,5 @@ module.exports = app => {
 
     router.delete("/delete/:eventId", eventController.deleteEvent);
 
-    app.use('/api/events', router);
+    app.use('/api/events', authMiddleware.privateUser, router);
 }
