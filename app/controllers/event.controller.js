@@ -27,10 +27,10 @@ exports.createEvent = (req, res) => {
         return;
     }
     
-    startDate = new Date(startDate);
-    endDate = new Date(endDate);
-    let dateNow = new Date();
-
+    startDate = new Date(startDate.toLocaleString("pt-BR", {timeZone: "America/Sao_Paulo"}));
+    endDate = new Date(endDate.toLocaleString("pt-BR", {timeZone: "America/Sao_Paulo"}));
+    let dateNow = new Date(new Date().toLocaleString("pt-BR", {timeZone: "America/Sao_Paulo"}));
+    
     if(!(startDate > dateNow)) {
         res.status(400).send({id: 'old-startDate', msg: "Start date is older than today" });
         return;
@@ -45,9 +45,9 @@ exports.createEvent = (req, res) => {
     }
 
     const event = {
-        description: description,
-        startDate: startDate.toLocaleString(),
-        endDate: endDate.toLocaleString(),
+        description: description.trim(),
+        startDate: req.body.startDate.trim(),
+        endDate: req.body.endDate.trim(),
         creator: _id,
     };
 
@@ -114,10 +114,11 @@ exports.updateEvent = (req, res) => {
         return;
     }
     
-    startDate = new Date(startDate);
-    endDate = new Date(endDate);
-    let dateNow = new Date();
+    startDate = new Date(startDate.toLocaleString("pt-BR", {timeZone: "America/Sao_Paulo"}));
+    endDate = new Date(endDate.toLocaleString("pt-BR", {timeZone: "America/Sao_Paulo"}));
+    let dateNow = new Date(new Date().toLocaleString("pt-BR", {timeZone: "America/Sao_Paulo"}));
 
+    console.log(startDate > dateNow)
     if(!(startDate > dateNow)) {
         res.status(400).send({id: 'old-startDate', msg: "Start date is older than today" });
         return;
@@ -132,9 +133,9 @@ exports.updateEvent = (req, res) => {
     }
 
     const event = {
-        description: req.body.description.trim(),
-        startDate: startDate.toLocaleString(),
-        endDate: endDate.toLocaleString(),
+        description: description.trim(),
+        startDate: req.body.startDate.trim(),
+        endDate: req.body.endDate.trim(),
     }
 
     Event.findOneAndUpdate({_id: req.params.eventId, creator: req.userId}, event, (err, event) => {
