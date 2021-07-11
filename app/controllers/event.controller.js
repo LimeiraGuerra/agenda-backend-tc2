@@ -1,16 +1,29 @@
 const db = require("../models");
 const Event = db.event;
 
+function monthDiff(d1, d2) {
+    var months;
+    months = (d2.getFullYear() - d1.getFullYear()) * 12;
+    months -= d1.getMonth();
+    months += d2.getMonth();
+    return months <= 0 ? 0 : months;
+}
+
 exports.createEvent = (req, res) => {
     const description = req.body.description;
     const _id = req.userId;
     let startDate = req.body.startDate;
     let endDate = req.body.endDate;
     
+    if(!(description && description.trim().length > 0)) {
+        res.status(400).send({id: 'missing-data', msg: "Insufficient data" });
+        return;
+    }
+
     let dateRe = /^[2]\d\d\d-[0-1]\d-[0-3]\d [0-2]\d:[0-5]\d/g;
     
     if (!dateRe.test(startDate) && !dateRe.test(endDate)){
-        res.status(400).send({id: 'invalid-date', msg: "date malformatted" });
+        res.status(400).send({id: 'invalid-date', msg: "Date(s) malformatted" });
         return;
     }
     
@@ -18,18 +31,19 @@ exports.createEvent = (req, res) => {
     endDate = new Date(endDate);
     let dateNow = new Date();
 
-    if (!(endDate > startDate) || !(startDate > dateNow) || !(endDate > dateNow)) {
-        if (endDate.getMonth() - startDate.getMonth() > 2){
-            res.status(400).send({id: 'invalid-date', msg: "event duration longer than 2 months" });
-            return;
-        }
-        else if (endDate.getMonth() - startDate.getMonth() == 2 && endDate.getDay() > startDate.getDay()){
-            res.status(400).send({id: 'invalid-date', msg: "event duration longer than 2 months" });
-            return;
-        }
-        res.status(400).send({id: 'invalid-date', msg: "date is invalid" });
+    if(!(startDate > dateNow)) {
+        res.status(400).send({id: 'old-startDate', msg: "Start date is older than today" });
         return;
     }
+    else if (!(endDate > startDate)) {
+        res.status(400).send({id: 'old-endDate', msg: "End date is older than today" });
+        return;
+    }
+    else if (monthDiff(startDate, endDate) > 2){
+        res.status(400).send({id: 'long-interval', msg: "Event duration longer than 2 months" });
+        return;
+    }
+
     const event = {
         description: description,
         startDate: startDate.toLocaleString(),
@@ -70,14 +84,13 @@ exports.listAll = (req, res) => {
 }
 
 exports.listOne = (req, res) => {
-    console.log(req)
     Event.findOne({_id: req.params.eventId, creator: req.userId}, (err, event) => {
         if (err){
-            res.status(400).send({id: 'invalid-id', msg: err });
+            res.status(400).send({id: 'invalid-id', msg: "Missing creator id or event id" });
             return;
         }
         if (!event) {
-            res.status(400).send({id: 'invalid-id', msg: "No event with id "+req.params.eventId});
+            res.status(404).send({id: 'event-not-found', msg: "No event with id "+req.params.eventId});
             return;
         }
         return res.json({event});
@@ -85,9 +98,15 @@ exports.listOne = (req, res) => {
 }
 
 exports.updateEvent = (req, res) => {
+    const description = req.body.description;
     let startDate = req.body.startDate;
     let endDate = req.body.endDate;
     
+    if(!(description && description.trim().length > 0)) {
+        res.status(400).send({id: 'missing-data', msg: "Insufficient data" });
+        return;
+    }
+
     let dateRe = /^[2]\d\d\d-[0-1]\d-[0-3]\d [0-2]\d:[0-5]\d/g;
     
     if (!dateRe.test(startDate) && !dateRe.test(endDate)){
@@ -99,38 +118,38 @@ exports.updateEvent = (req, res) => {
     endDate = new Date(endDate);
     let dateNow = new Date();
 
-    if (!(endDate > startDate) || !(startDate > dateNow) || !(endDate > dateNow)) {
-        if (endDate.getMonth() - startDate.getMonth() > 2){
-            res.status(400).send({id: 'invalid-date', msg: "event duration longer than 2 months" });
-            return;
-        }
-        else if (endDate.getMonth() - startDate.getMonth() == 2 && endDate.getDay() > startDate.getDay()){
-            res.status(400).send({id: 'invalid-date', msg: "event duration longer than 2 months" });
-            return;
-        }
-        res.status(400).send({id: 'invalid-date', msg: "date is invalid" });
+    if(!(startDate > dateNow)) {
+        res.status(400).send({id: 'old-startDate', msg: "Start date is older than today" });
+        return;
+    }
+    else if (!(endDate > startDate)) {
+        res.status(400).send({id: 'old-endDate', msg: "End date is older than today" });
+        return;
+    }
+    else if (monthDiff(startDate, endDate) > 2){
+        res.status(400).send({id: 'long-interval', msg: "Event duration longer than 2 months" });
         return;
     }
 
     const event = {
-        description: req.body.description,
+        description: req.body.description.trim(),
         startDate: startDate.toLocaleString(),
         endDate: endDate.toLocaleString(),
     }
 
     Event.findOneAndUpdate({_id: req.params.eventId, creator: req.userId}, event, (err, event) => {
         if (err){
-            res.status(400).send({id: 'invalid-id', msg: err });
+            res.status(400).send({id: 'invalid-id', msg: "Missing creator id or event id" });
             return;
         }
         if (!event) {
-            res.status(400).send({id: 'invalid-id', msg: "No event with id "+req.params.eventId});
+            res.status(404).send({id: 'event-not-found', msg: "No event with id "+req.params.eventId});
             return;
         }
 
         Event.findOne(event._id, (err, event) => {
             if (err){
-                res.status(400).send({id: 'invalid-id', msg: err });
+                res.status(400).send({id: 'invalid-id', msg: "Missing creator id or event id" });
                 return;
             }
             return res.json({event});
@@ -142,18 +161,18 @@ exports.updateEvent = (req, res) => {
 exports.deleteEvent = (req, res) => {
     Event.deleteOne({_id: req.params.eventId, creator: req.userId}, (err, event) =>  {
         if (err) {
-            res.status(400).send({id: 'invalid-id', msg: err });
+            res.status(400).send({id: 'invalid-id', msg: "Missing creator id or event id" });
         }
         if (event.n == 0 ){
-            res.status(400).send({id: 'no-case', msg: "no matched cases"});
+            res.status(400).send({id: 'event-not-found', msg: "No matched cases"});
             return;
         }
 
         if (event.deletedCount == 0){
-            res.status(400).send({id: 'no-deleted', msg: "no document deleted"});
+            res.status(404).send({id: 'not-deleted', msg: "No document deleted"});
             return;
         }
 
-        return res.json({id: 'deleted', msg:"successful deleted"});
+        return res.json({id: 'deleted', msg:"Successful deleted"});
       });
 }
