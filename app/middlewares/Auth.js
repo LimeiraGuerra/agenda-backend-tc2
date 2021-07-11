@@ -1,5 +1,3 @@
-const db = require("../models");
-const User = db.user;
 const jwt = require('jsonwebtoken');
 const authConfig = require('../config/auth.config.js');
 
@@ -9,12 +7,7 @@ module.exports = {
         if(!req.headers || req.headers.user_id === ""  || req.headers.authorization === ""){
             return res.status(401).send({errorMessage:'Headers Empty', data: 401});
         }
-
-        let user = await User.findById(req.headers.user_id);
-
-        if(!user){
-            return res.status(401).send({errorMessage:'Page invalid', data: 401});
-        }
+        
         authentication(req, res, next);
         
     },
@@ -45,9 +38,6 @@ function authentication(req, res, next){
         }
         req.userId = decoded.params.id;
 
-        if(req.headers.user_id !== req.userId){
-            return res.status(401).send({errorMessage:'Page invalid', data: 401});
-        }
         return next();
     });
 }

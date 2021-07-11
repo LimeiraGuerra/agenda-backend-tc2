@@ -1,17 +1,22 @@
 module.exports = app => {
     const eventController = require("../controllers/event.controller.js");
-    const authMiddleware = require('../middlewares/Auth.js')
+    const authMiddleware = require('../middlewares/auth.js')
     const router = require("express").Router();
 
-    router.post("/create", eventController.createEvent);
+    // Cria novo evento
+    router.post("/", eventController.createEvent);
 
-    router.get("/listAll", eventController.listAll);
+    // Lista todos os eventos do usuário
+    router.get("/", eventController.listAll);
 
-    router.get("/listOne/:eventId", eventController.listOne);
+    // Lista um evento do usuário
+    router.get("/:eventId", eventController.listOne);
 
-    router.post("/update/:eventId", eventController.updateEvent);
+    // Atualiza um evento do usuário
+    router.put("/:eventId", eventController.updateEvent);
 
-    router.delete("/delete/:eventId", eventController.deleteEvent);
+    // Deleta um evento do usuário
+    router.delete("/:eventId", eventController.deleteEvent);
 
     app.use('/api/events', authMiddleware.privateUser, router);
 }

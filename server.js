@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const authMiddleware = require('./app/middlewares/Auth');
+const authMiddleware = require('./app/middlewares/auth.js');
 const app = express();
 
 var corsOptions = {
@@ -40,7 +40,7 @@ app.use('/checkUser', authMiddleware.privateUser, (req, res)=>{
   res.status(200).json({data:200});
 });
 
-const PORT = process.env.PORT || 3030; //mudar para 8080
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Servidor está executando na porta ${PORT}.`);
 });
