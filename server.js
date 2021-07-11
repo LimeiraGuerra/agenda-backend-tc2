@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-
+const authMiddleware = require('./app/middlewares/auth.js');
 const app = express();
 
 var corsOptions = {
@@ -21,7 +21,7 @@ app.get("/", (req, res) => {
 
 const db = require("./app/models");
 db.mongoose
-  .connect(db.url, {
+  .connect(db.url, { 
     useNewUrlParser: true,
     useUnifiedTopology: true
   })
@@ -34,6 +34,11 @@ db.mongoose
   });
 
 require("./app/routes/user.routes")(app);
+require("./app/routes/event.routes")(app);
+
+app.use('/checkUser', authMiddleware.privateUser, (req, res)=>{
+  res.status(200).json({data:200});
+});
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
